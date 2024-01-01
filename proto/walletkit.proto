@@ -75,6 +75,11 @@ service WalletKit {
     */
     rpc NextAddr (AddrRequest) returns (AddrResponse);
 
+    /* lncli: `wallet gettx`
+    GetTransaction returns details for a transaction found in the wallet.
+    */
+    rpc GetTransaction (GetTransactionRequest) returns (lnrpc.Transaction);
+
     /* lncli: `wallet accounts list`
     ListAccounts retrieves all accounts belonging to the wallet by default. A
     name and key scope filter can be provided to filter through all of the
@@ -202,6 +207,13 @@ service WalletKit {
     chain.
     */
     rpc PublishTransaction (Transaction) returns (PublishResponse);
+
+    /* lncli: `wallet removetx`
+    RemoveTransaction attempts to remove the provided transaction from the
+    internal transaction store of the wallet.
+    */
+    rpc RemoveTransaction (GetTransactionRequest)
+        returns (RemoveTransactionResponse);
 
     /*
     SendOutputs is similar to the existing sendmany call in Bitcoind, and
@@ -556,6 +568,11 @@ message ListAddressesResponse {
     repeated AccountWithAddresses account_with_addresses = 1;
 }
 
+message GetTransactionRequest {
+    // The txid of the transaction.
+    string txid = 1;
+}
+
 message SignMessageWithAddrRequest {
     // The message to be signed. When using REST, this field must be encoded as
     // base64.
@@ -741,6 +758,7 @@ message Transaction {
     */
     string label = 2;
 }
+
 message PublishResponse {
     /*
     If blank, then no error occurred and the transaction was successfully
@@ -750,6 +768,11 @@ message PublishResponse {
     TODO(roasbeef): map to a proper enum type
     */
     string publish_error = 1;
+}
+
+message RemoveTransactionResponse {
+    // The status of the remove transaction operation.
+    string status = 1;
 }
 
 message SendOutputsRequest {
