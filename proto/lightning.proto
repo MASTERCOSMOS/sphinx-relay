@@ -1940,10 +1940,11 @@ message GetInfoResponse {
     reserved 11;
 
     /*
-    Deprecated. The only active chain is bitcoin.
-    A list of active chains the node is connected to
+    A list of active chains the node is connected to. This will only
+    ever contain a single entry since LND will only ever have a single
+    chain backend during its lifetime.
     */
-    repeated Chain chains = 16 [deprecated = true];
+    repeated Chain chains = 16;
 
     // The URIs of the current node.
     repeated string uris = 12;
@@ -3329,6 +3330,9 @@ message RoutingPolicy {
 
     // Custom channel update tlv records.
     map<uint64, bytes> custom_records = 8;
+
+    int32 inbound_fee_base_msat = 9;
+    int32 inbound_fee_rate_milli_msat = 10;
 }
 
 /*
@@ -3544,8 +3548,11 @@ message BlindedPaymentPath {
     // The base fee for the blinded path provided, expressed in msat.
     uint64 base_fee_msat = 2;
 
-    // The proportional fee for the blinded path provided, expressed in msat.
-    uint64 proportional_fee_msat = 3;
+    /*
+    The proportional fee for the blinded path provided, expressed in parts
+    per million.
+    */
+    uint32 proportional_fee_rate = 3;
 
     /*
     The total CLTV delta for the blinded path provided, including the
@@ -4305,7 +4312,15 @@ message ChannelFeeReport {
     // The effective fee rate in milli-satoshis. Computed by dividing the
     // fee_per_mil value by 1 million.
     double fee_rate = 4;
+
+    // The base fee charged regardless of the number of milli-satoshis sent.
+    int32 inbound_base_fee_msat = 6;
+
+    // The amount charged per milli-satoshis transferred expressed in
+    // millionths of a satoshi.
+    int32 inbound_fee_per_mil = 7;
 }
+
 message FeeReportResponse {
     // An array of channel fee reports which describes the current fee schedule
     // for each channel.
@@ -4356,7 +4371,11 @@ message PolicyUpdateRequest {
 
     // If true, min_htlc_msat is applied.
     bool min_htlc_msat_specified = 8;
+
+    int32 inbound_base_fee_msat = 10;
+    int32 inbound_fee_rate_ppm = 11;
 }
+
 enum UpdateFailure {
     UPDATE_FAILURE_UNKNOWN = 0;
     UPDATE_FAILURE_PENDING = 1;
